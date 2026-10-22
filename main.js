@@ -78,6 +78,8 @@ function createWindow() {
   });
 
   win.loadFile(`${__dirname}/renderer/index.html`);
+  // macOS：alwaysOnTop 默认不会盖住全屏应用，开启后满屏时也能唤出面板
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.once('ready-to-show', () => {
     if (DEMO) {
       win.show();   // demo：直接居中显示，不吸附

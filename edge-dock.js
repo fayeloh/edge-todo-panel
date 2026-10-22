@@ -99,6 +99,10 @@ class EdgeDock {
     this.expanded = true;
     this.expandedAt = Date.now();   // 冷却起点：展开后 600ms 内不判定收起
     this.win.setBounds(this.expandedBounds(), false);
+    if (process.env.DOCK_DEBUG) {
+      const b = this.win.getBounds();
+      require('fs').appendFileSync('/tmp/dock_debug.log', `>>> EXPAND setBounds 后实际窗口: ${JSON.stringify(b)}\n`);
+    }
     this.win.focus();
     setTimeout(() => { this.animating = false; }, 220);
   }

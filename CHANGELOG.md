@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.4（2026-10-22 20:08）
+
+**全屏应用上层显示**
+
+- `win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })`：任何应用满屏时，左下角热区依然能唤出面板
+- 背景：用户提"应用满屏时也能看到"——macOS `alwaysOnTop` 默认盖不住全屏 Space，此 API 让面板横跨所有空间（含全屏）
+
+**右屏"唤不出"结案（虚惊）**
+
+- 完整日志证据链：热区命中（-1920,870）→ expand() setBounds 实际窗口 (-1920,185) 300×680 → 面板确实展开过；用户 20:06 确认"是我看错了"
+- 排查产出沉淀：expand() 增强日志（setBounds 后实际 bounds 落盘）、Quartz CGWindowList 查窗口法（AppleScript 对多 Electron 进程失效时用）、副屏自查手册条目
+
 ## v0.7.3（2026-10-22 19:55）
 
 **副屏唤出排查工具链**（用户报障"右屏左下角唤不出"）
