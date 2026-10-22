@@ -99,6 +99,30 @@ DEMO_PANEL=1 npm start
 
 用于体验和截图，所有 tab 显示内置虚拟数据，写操作不落盘。
 
+## 开发流程：改代码 → 同步到 GitHub
+
+日常改动提交推送三步：
+
+```bash
+cd ~/Documents/AIIIII/edge-todo-panel
+
+git add -A                                  # 暂存所有改动（含新文件）
+git commit -m "一句话写这次改了啥"            # 提交到本地仓库
+git push                                    # 推到 GitHub
+```
+
+可选辅助命令：
+
+| 场景 | 命令 |
+|------|------|
+| 提交前看哪些文件动了 | `git status` |
+| 提交前看具体改了哪几行 | `git diff` |
+| 只提交部分文件 | `git add 文件名` 代替 `git add -A` |
+| 撤销未提交的修改 | `git restore 文件名` |
+| 远程有新提交要拉下来 | `git pull` |
+
+> 凭证：整台电脑共用一个 GitHub PAT（存在 macOS 钥匙串，`github.com` 一格）。首次 push 时 `Username: fayeloh` + 粘贴 PAT 即自动记住，之后免输。
+
 ## 环境要求
 
 - macOS（窗口吸附逻辑基于 `screen` API 的 workArea，Windows/Linux 未适配）
@@ -119,6 +143,7 @@ edge-todo-panel/
 │   ├── index.html     # 玻璃面板样式
 │   └── app.js         # 五 tab 渲染逻辑
 ├── shot-demo.js       # demo 截图生成脚本（开发用）
+├── translate.js       # 谷歌翻译模块
 └── docs/              # 效果展示截图
 ```
 
@@ -127,4 +152,3 @@ edge-todo-panel/
 - 待办解析只认 `- [ ]` / `- [x]` 复选框行（含 🔴🟡🟢 优先级识别）
 - 计划节点解析依赖路线图文档的表格/复选框格式，格式变化需同步改 `roadmap-sync.js`
 - 面板不开机自启（v0.2 计划：登录项 + 快捷键唤出）
-# edge-todo-panel
