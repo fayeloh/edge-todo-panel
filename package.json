@@ -1,0 +1,12 @@
+{
+  "name": "edge-todo-panel",
+  "version": "0.5.2",
+  "description": "效能边缘面板：吸附屏幕左下角的 macOS 待办/计划/愿望玻璃面板，与 Obsidian 高效能系统双向同步",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

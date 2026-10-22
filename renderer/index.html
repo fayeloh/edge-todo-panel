@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+  html, body { background: transparent; height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    font-size: 13px; color: #e8e8e8;
+    display: flex; flex-direction: column;
+  }
+  /* 玻璃面板 */
+  #panel {
+    flex: 1; display: flex; flex-direction: column;
+    background: rgba(28, 28, 34, 0.82);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-radius: 14px; border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+    margin: 8px; overflow: hidden;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px 6px;
+    -webkit-app-region: drag;
+  }
+  header h1 { font-size: 13px; font-weight: 600; color: #9cc; letter-spacing: 0.5px; }
+  header .btns { -webkit-app-region: no-drag; display: flex; gap: 6px; }
+  header button {
+    background: none; border: none; color: #888; font-size: 15px; cursor: pointer; padding: 0 4px;
+  }
+  header button:hover { color: #fff; }
+
+  nav { display: flex; gap: 2px; padding: 0 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); -webkit-app-region: drag; }
+  nav button {
+    -webkit-app-region: no-drag;
+    flex: 1; padding: 7px 0; border: none; border-radius: 8px;
+    background: transparent; color: #999; font-size: 12px; cursor: pointer;
+    transition: all .15s;
+  }
+  nav button.active { background: rgba(255,255,255,0.12); color: #fff; font-weight: 600; }
+  nav button:hover { color: #fff; }
+
+  /* 翻译 */
+  .tr-box { display: flex; flex-direction: column; gap: 8px; }
+  .tr-bar { display: flex; gap: 6px; align-items: center; }
+  .tr-bar select {
+    flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 6px 8px; color: #ddd; font-size: 12px; outline: none;
+  }
+  .tr-bar .arrow { color: #888; font-size: 12px; }
+  .tr-bar button {
+    background: rgba(90,180,150,0.25); border: none; border-radius: 8px; color: #9de;
+    padding: 6px 14px; cursor: pointer; font-size: 12px;
+  }
+  .tr-bar button:hover { background: rgba(90,180,150,0.45); }
+  .tr-bar button:disabled { opacity: 0.5; cursor: wait; }
+  textarea.tr-input {
+    width: 100%; height: 84px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 10px; color: #ddd; font-size: 12px; line-height: 1.6;
+    resize: none; outline: none; font-family: inherit;
+  }
+  textarea.tr-input:focus { border-color: rgba(120,200,180,0.5); }
+  .tr-output {
+    min-height: 84px; background: rgba(90,180,150,0.08); border: 1px solid rgba(90,180,150,0.2);
+    border-radius: 10px; padding: 10px; font-size: 12px; line-height: 1.7; color: #cde;
+    user-select: text; white-space: pre-wrap;
+  }
+  .tr-meta { font-size: 10px; color: #777; }
+  .tr-meta b { color: #9cc; font-weight: 600; }
+
+  main { flex: 1; overflow-y: auto; padding: 10px 14px; }
+  main::-webkit-scrollbar { width: 4px; }
+  main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+  /* 待办 */
+  .lvl-tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-right: 6px; font-weight: 600; }
+  .lvl-1 .lvl-tag { background: rgba(255,90,90,0.25); color: #ff8f8f; }
+  .lvl-3 .lvl-tag { background: rgba(255,200,80,0.22); color: #ffd76e; }
+  .lvl-5 .lvl-tag { background: rgba(90,220,140,0.2); color: #7fe0a0; }
+  .todo { display: flex; align-items: flex-start; gap: 8px; padding: 7px 8px; border-radius: 8px; margin-bottom: 2px; }
+  .todo:hover { background: rgba(255,255,255,0.05); }
+  .todo input[type=checkbox] { margin-top: 2px; accent-color: #56c271; width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .todo .txt { line-height: 1.45; flex: 1; user-select: text; cursor: text; }
+  .todo:hover .txt::after { content: '⧉'; float: right; color: #667; font-size: 12px; margin-left: 6px; cursor: pointer; }
+  .todo .txt .copy-hit { color: #7fe0a0; font-size: 10px; margin-left: 4px; }
+  .todo.done .txt { color: #666; text-decoration: line-through; }
+  .todo .txt b { color: #aad; font-weight: 600; }
+  .date-line { font-size: 11px; color: #7aa; margin: 4px 2px 10px; }
+
+  /* 愿望 */
+  .wish { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; margin-bottom: 4px; background: rgba(255,255,255,0.04); }
+  .wish .txt { flex: 1; line-height: 1.4; }
+  .wish.done .txt { color: #666; text-decoration: line-through; }
+  .wish button { background: none; border: none; cursor: pointer; font-size: 12px; color: #888; padding: 2px 4px; }
+  .wish button:hover { color: #fff; }
+  .wish button.ok:hover { color: #7fe0a0; }
+  .input-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .input-row input { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 7px 10px; color: #eee; font-size: 12px; outline: none; }
+  .input-row input:focus { border-color: rgba(120,200,180,0.6); }
+  .input-row button { background: rgba(90,180,150,0.25); border: none; border-radius: 8px; color: #9de; padding: 0 12px; cursor: pointer; font-size: 12px; }
+  .input-row button:hover { background: rgba(90,180,150,0.45); }
+
+  textarea.notes { width: 100%; height: calc(100% - 20px); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; color: #ddd; font-size: 12px; line-height: 1.6; resize: none; outline: none; font-family: inherit; }
+  textarea.notes:focus { border-color: rgba(120,200,180,0.5); }
+
+  /* 计划 */
+  .plan { padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; background: rgba(255,255,255,0.04); cursor: pointer; }
+  .plan:hover { background: rgba(255,255,255,0.08); }
+  .plan .name { font-weight: 600; margin-bottom: 3px; }
+  .plan .name .plan-arrow { color: #888; font-size: 11px; float: right; }
+  .plan .status { font-size: 11px; color: #8c9; margin-bottom: 3px; }
+  .plan .next { font-size: 11px; color: #99a; line-height: 1.4; }
+  .plan .detail { margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; }
+  .plan-progress-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; margin-bottom: 3px; }
+  .plan-progress-bar span { display: block; height: 100%; background: linear-gradient(90deg, #56c271, #7fe0a0); border-radius: 3px; }
+  .plan-progress-txt { font-size: 11px; color: #7fe0a0; margin-bottom: 6px; }
+  .plan-node { font-size: 11px; color: #bbb; line-height: 1.6; padding-left: 2px; }
+  .plan-node b { color: #aad; font-weight: 600; margin-right: 2px; }
+
+  /* 定时器 */
+  .timer { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; margin-bottom: 5px; background: rgba(255,255,255,0.04); }
+  .timer .label { flex: 1; }
+  .timer .clock { font-family: "SF Mono", Menlo, monospace; font-size: 15px; color: #ffd76e; }
+  .timer.done-t { background: rgba(90,220,140,0.12); }
+  .timer.done-t .clock { color: #7fe0a0; }
+  .timer button { background: none; border: none; color: #888; cursor: pointer; font-size: 13px; }
+  .timer button:hover { color: #fff; }
+
+  .empty { text-align: center; color: #777; font-size: 12px; padding: 24px 10px; line-height: 1.8; }
+  .hint { font-size: 10px; color: #666; padding: 6px 0; text-align: center; }
+</style>
+</head>
+<body>
+<div id="panel">
+  <header>
+    <h1>⚡ 效能边缘面板</h1>
+    <div class="btns">
+      <button id="btn-collapse" title="收起到左下角（鼠标移开也会自动收起）">—</button>
+      <button id="btn-quit" title="退出">✕</button>
+    </div>
+  </header>
+  <nav>
+    <button data-tab="todos" class="active">待办</button>
+    <button data-tab="plans">计划</button>
+    <button data-tab="wishes">愿望</button>
+    <button data-tab="notes">速记</button>
+    <button data-tab="timers">计时</button>
+    <button data-tab="translate">翻译</button>
+  </nav>
+  <main id="main"></main>
+  <div class="hint">数据源：Obsidian 高效能系统 · 点击标题栏可拖动</div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
