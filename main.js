@@ -160,21 +160,12 @@ function createTray() {
   tray.on('click', () => dock ? dock.expand() : win?.show());
 }
 
-// 全局快捷键：Ctrl/Cmd+Shift+P 切换面板（第三入口）
-function registerShortcut() {
-  const ret = globalShortcut.register('CommandOrControl+Shift+P', () => {
-    if (!win) return;
-    if (dock && dock.expanded) dock.collapse();
-    else if (dock) dock.expand();
-    else win.show();
-  });
-  if (!ret) console.log('快捷键注册失败（可能被其他 app 占用）');
-}
+// 全局快捷键：已按用户要求移除（2026-10-22 17:28，与 VSCode 等工具冲突）
+// 唤出面板入口：左下角热区 + 托盘 ⚡ 图标
 
 app.whenReady().then(() => {
   createWindow();
   createTray();
-  registerShortcut();
   app.dock.hide();
 });
 

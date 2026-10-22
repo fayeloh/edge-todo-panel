@@ -16,7 +16,7 @@ case "$1" in
     cd "$DIR" && nohup npx electron . > "$LOG" 2>&1 &
     sleep 3
     if pgrep -f "AIIIII/edge-todo-panel" >/dev/null; then
-      echo "✅ 面板已重启（左下角热区 / 托盘⚡ / Cmd+Shift+P 三入口）"
+      echo "✅ 面板已重启（左下角热区 / 托盘⚡ 双入口）"
     else
       echo "❌ 启动失败，看日志：$DIR/panel.sh log"
     fi
