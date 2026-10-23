@@ -123,20 +123,29 @@ async function renderPlans(main2) {
   });
 }
 
-// ---------- 愿望箱 ----------
+// ---------- 愿望箱（2026-10-23 语义升级：当天急事列表——排序/编辑/完成转当日记录） ----------
 async function renderWishes() {
-  const wishes = await P.getWishes();
+  const [wishes, doneToday] = await Promise.all([P.getWishes(), P.getDoneToday().catch(() => [])]);
   let html = `<div class="input-row">
-    <input id="wish-input" placeholder="想做的事…（回车添加）">
+    <input id="wish-input" placeholder="今天急着做的事…（回车添加）">
     <button id="wish-add">+</button>
   </div>`;
-  if (!wishes.length) html += '<div class="empty">愿望箱是空的<br>攒点念想？</div>';
-  for (const w of wishes) {
-    html += `<div class="wish ${w.done ? 'done' : ''}">
-      <div class="txt">${w.done ? '🎉' : '⭐'} ${escapeHtml(w.text)}</div>
-      ${w.done ? '' : `<button class="ok" data-id="${w.id}" title="达成">✓</button>`}
+  if (!wishes.length) html += '<div class="empty">列表是空的<br>急事随时丢进来，做完自动归档</div>';
+  wishes.forEach((w, i) => {
+    html += `<div class="wish ${w.done ? 'done' : ''}" data-id="${w.id}" draggable="true">
+      <span class="drag-handle" title="拖我调整顺序">⠿</span>
+      <div class="txt" title="双击编辑">${escapeHtml(w.text)}</div>
+      <button class="ok" data-id="${w.id}" title="完成">✓</button>
       <button data-id="${w.id}" data-del="1" title="删除">✕</button>
     </div>`;
+  });
+  if (doneToday.length) {
+    html += `<div class="done-today"><div class="dt-title">今日已完成 ${doneToday.length} 件</div>`;
+    doneToday.forEach(d => {
+      const t = (d.doneAt || '').slice(11, 16);
+      html += `<div class="dt-item">✓ <span>${escapeHtml(d.text)}</span> <span class="t">${t}</span></div>`;
+    });
+    html += '</div>';
   }
   main.innerHTML = html;
   const input = document.getElementById('wish-input');
@@ -153,6 +162,47 @@ async function renderWishes() {
       if (btn.dataset.del) await P.delWish(btn.dataset.id);
       else await P.achieveWish(btn.dataset.id);
       render();
+    };
+  });
+  // 拖拽排序：dragstart 记录 id，dragover 计算插入位，drop 调 reorder
+  let dragId = null;
+  main.querySelectorAll('.wish').forEach(el => {
+    el.ondragstart = e => { dragId = el.dataset.id; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch {} };
+    el.ondragend = () => { el.classList.remove('dragging'); dragId = null; };
+    el.ondragover = e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const box = el.getBoundingClientRect();
+      const after = (e.clientY - box.top) / box.height > 0.5;  // 鼠标在下半 → 插到其后
+      main.querySelectorAll('.wish').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bottom'));
+      el.classList.add(after ? 'drag-over-bottom' : 'drag-over-top');
+    };
+    el.ondragleave = () => el.classList.remove('drag-over-top', 'drag-over-bottom');
+    el.ondrop = async e => {
+      e.preventDefault();
+      const id = dragId || e.dataTransfer.getData('text/plain');
+      if (!id || id === el.dataset.id) { render(); return; }
+      const box = el.getBoundingClientRect();
+      const after = (e.clientY - box.top) / box.height > 0.5;
+      await P.reorderWish(id, el.dataset.id, after);
+      render();
+    };
+  });
+  // 双击编辑：文本框内联替换
+  main.querySelectorAll('.wish .txt').forEach(txt => {
+    txt.ondblclick = () => {
+      const wish = txt.closest('.wish');
+      const id = wish.dataset.id;
+      const old = txt.textContent;
+      txt.innerHTML = `<input class="txt-edit" value="${escapeHtml(old)}">`;
+      const ed = txt.querySelector('.txt-edit');
+      ed.focus(); ed.select();
+      ed.onkeydown = e => {
+        e.stopPropagation();
+        if (e.key === 'Enter') { P.editWish(id, ed.value).then(render); }
+        if (e.key === 'Escape') { render(); }
+      };
+      ed.onblur = () => { if (document.activeElement !== ed) render(); };
     };
   });
 }

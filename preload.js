@@ -14,6 +14,9 @@ contextBridge.exposeInMainWorld('P', {
   addWish: (text) => ipcRenderer.invoke('wishes:add', { text }),
   delWish: (id) => ipcRenderer.invoke('wishes:del', { id }),
   achieveWish: (id) => ipcRenderer.invoke('wishes:achieve', { id }),
+  editWish: (id, text) => ipcRenderer.invoke('wishes:edit', { id, text }),
+  moveWish: (id, dir) => ipcRenderer.invoke('wishes:move', { id, dir }),
+  getDoneToday: () => ipcRenderer.invoke('wishes:doneToday'),
 
   // ---- 速记 ----
   getNotes: () => ipcRenderer.invoke('notes:get'),

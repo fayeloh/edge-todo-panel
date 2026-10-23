@@ -123,7 +123,26 @@ ipcMain.handle('todos:toggle', (_e, { lineIdx, checked }) => {
 ipcMain.handle('wishes:get', () => DEMO ? DEMO_WISHES : store.getWishes());
 ipcMain.handle('wishes:add', (_e, { text }) => { if (!DEMO) return store.addWish(text); DEMO_WISHES.unshift({ id: Date.now(), text, done: false }); return DEMO_WISHES; });
 ipcMain.handle('wishes:del', (_e, { id }) => { if (!DEMO) return store.delWish(id); const i = DEMO_WISHES.findIndex(w => w.id === Number(id)); if (i >= 0) DEMO_WISHES.splice(i, 1); return DEMO_WISHES; });
-ipcMain.handle('wishes:achieve', (_e, { id }) => { if (!DEMO) return store.achieveWish(id); const w = DEMO_WISHES.find(w => w.id === Number(id)); if (w) w.done = true; return DEMO_WISHES; });
+ipcMain.handle('wishes:achieve', (_e, { id }) => {
+  if (!DEMO) return store.achieveWishV2(id);  // v0.8：完成即转当日记录
+  const w = DEMO_WISHES.find(w => w.id === Number(id));
+  if (w) { w.done = true; }
+  return DEMO_WISHES;
+});
+ipcMain.handle('wishes:edit', (_e, { id, text }) => {
+  if (!DEMO) { store.editWish(id, text); return store.getWishes(); }
+  const w = DEMO_WISHES.find(w => w.id === Number(id));
+  if (w) w.text = text.trim();
+  return DEMO_WISHES;
+});
+ipcMain.handle('wishes:move', (_e, { id, dir }) => {
+  if (!DEMO) return store.moveWish(id, dir);
+  const i = DEMO_WISHES.findIndex(w => w.id === Number(id));
+  const j = i + dir;
+  if (i >= 0 && j >= 0 && j < DEMO_WISHES.length) [DEMO_WISHES[i], DEMO_WISHES[j]] = [DEMO_WISHES[j], DEMO_WISHES[i]];
+  return DEMO_WISHES;
+});
+ipcMain.handle('wishes:doneToday', () => DEMO ? [] : store.getDoneToday());
 ipcMain.handle('notes:get', () => DEMO ? DEMO_NOTES : store.getNotes());
 ipcMain.handle('notes:save', (_e, { text }) => { if (!DEMO) return store.saveNotes(text); return { ok: true }; });
 ipcMain.handle('timers:get', () => DEMO ? DEMO_TIMERS : store.getTimers());
